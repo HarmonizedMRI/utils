@@ -55,6 +55,7 @@ function sub_test
 nx = 128;
 p = phantom(nx);
 x = p(:,end/2);
+x = [x 2*x 3*x];
 fov = 20;  % cm
 
 % nonuniform k-space (trapezoidal gradient)
