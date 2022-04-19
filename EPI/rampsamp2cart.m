@@ -46,6 +46,9 @@ for ii = 1:nm
     dc(:,ii) = fftshift(fft(fftshift(x,1), [], 1),1);
 end
 
+% Reshape
+dc = reshape(dc, [nx drSize(2:end)]);
+
 return
 
 
