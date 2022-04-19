@@ -1,6 +1,7 @@
 function dc = rampsamp2cart(dr, kx, nx, fov)
 %
-% Convert ramp-sampled trapezoidal raw data to Cartesian data using NUFFT (from MIRT).
+% Interpolate ramp-sampled data (e.g., EPI) to Cartesian grid
+% using NUFFT.
 %
 % Inputs:
 %  dr      [nr, ...]   Ramp-sampled raw data along 1st ("x") dimension 
@@ -10,6 +11,9 @@ function dc = rampsamp2cart(dr, kx, nx, fov)
 %
 % Output:
 %  dc      [nx, ...]   Data interpolated onto Cartesian grid along x
+%
+% To test:
+% >> rampsamp2cart("test");
 
 if strcmp(dr, "test")
 	sub_test;
@@ -47,37 +51,55 @@ return
 
 function sub_test
 
-% 1d test object
+% test object
 nx = 128;
 p = phantom(nx);
 x = p(:,end/2);
 fov = 20;  % cm
 
-% nonuniform sampling (trapezoidal gradient)
+% nonuniform k-space (trapezoidal gradient)
 dt = 4e-6;             % gradient raster time (s)
 gamma = 4257.6;        % Hz/G
 res = fov/nx;          % spatial resolution (cm)
 kmax = 1/(2*res);      % cycles/cm
-area = kmax/gamma;     % G/cm * sec (area of each readout trapezoid)
+area = kmax/gamma;     % G/cm * sec (half-area of each readout trapezoid)
 gmax = 1/(fov*gamma*dt);    % Gauss/cm
 gslew = 10;      % G/cm/ms
 gx = toppe.utils.trapwave2(2*area, gmax, gslew, dt*1e3);
 gx = gx(2:(end-1));
 kx = gamma*dt*cumsum(gx);
 kx = kx - max(kx)/2;
+%kx = linspace(kx(1), kx(end), nx);
 
-% Ramp-sampled data
+% Synthesize ramp-sampled data
 nufft_args = {[nx],[6],[2*nx],[nx/2],'minmax:kb'};
 mask = true(nx,1);
 A = Gmri([fov*kx(:)],mask,'nufft',nufft_args);
-yr = A*x(:);
+yr = A*x;
 
-% create multi-dimensional input
-yr = [yr 2*yr];
+% Interpolated onto Cartesian grid 
+yc = rampsamp2cart(yr, kx, nx, fov);
 
-yc = rampsamp2cart(yr, nx, fov, kx);
-%function dc = rampsamp2cart(dr, nx, fov, kxo, kxe)
-
-%hold off; plot(x); hold on; plot(abs(xhat),'o'); legend('x true', 'xhat');
+% Do IFT and compare with true object
+xhat = fftshift(ifft(fftshift(yc,1), [], 1),1);
+hold off; plot(x); hold on; plot(abs(xhat),'o'); legend('x true', 'xhat');
 
 return
+
+
+% Check normalization
+figure
+yfft = fftshift(fft(fftshift(x,1), [], 1),1);
+plot(abs(yr)); hold on; plot(abs(yfft),'ro')
+
+figure
+xyr = fftshift(ifft(fftshift(yr,1), [], 1),1);
+xyr2 = A'*yr/nx;
+xyfft = fftshift(ifft(fftshift(yfft,1), [], 1),1);
+plot(abs(xyr)); hold on; plot(abs(xyfft),'ro')
+plot(abs(xyr2), 'gx');
+
+yc = rampsamp2cart(yr, kx, nx, fov);
+xyc = fftshift(ifft(fftshift(yc,1), [], 1),1);
+plot(abs(xyc), 'bx');
+
