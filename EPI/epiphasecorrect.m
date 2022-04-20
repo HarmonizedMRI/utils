@@ -24,10 +24,15 @@ d = reshape(d, nx, etl, []);
 x = fftshift(ifft(fftshift(d,1), [], 1),1);
 
 % Construct 2D map of odd/even mismatch
-X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);
+X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);  % see also getoephase.m
+TH = a(1)*ones(size(X)) + a(2)*X;
 
-keyboard
-
-for ii = 1:size(dc,3)
+% Subtract phase mismatch from even echoes
+for ii = 1:size(d,3)
+    x(:,2:2:end,ii) = x(:,2:2:end,ii).*exp(-1i*TH(:,2:2:end));
 end
-dc = reshape(dc, [nx etl dSize(3:end)]);
+
+% Go back to data space and reshape
+dc = fftshift(fft(fftshift(x,1), [], 1),1);
+dc = reshape(dc, [nx  etl dSize(3:end)]);
+
