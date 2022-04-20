@@ -1,20 +1,25 @@
-function a = getoephase(x, fov)
-% function a = getoephase(x, fov)
+function a = getoephase(x, verbose)
+% function a = getoephase(x, [verbose])
 %
 % Estimate odd/even EPI echo phase difference (linear and constant term)
-% from one EPI echo train.
+% from one EPI echo train (without phase-encoding blips).
 %
 % Inputs
 %   x    [nx etl nCoils]   EPI echo train of length 'etl', without phase-encoding.
-%                          etl must be even
-%   fov  [1 1]             FOV along readout (x) (cm)
+%                          Assumes x has been inverse FFT'd along 1st (readout, or 'x') dimension,
+%                          i.e., that x contains multiple 1D spatial profiles.
+%                          Also assumes that etl is even.
+%   verbose  boolean       Default: false
 %
 % Output
-%   a    [2 1]             Linear fit to odd/even phase offsets
-%                          a(1): phase offset (radians)
-%                          a(2): linear term (radians/fov)
+%   a    [2 1]     Linear fit to odd/even phase offsets
+%                  a(1): constant phase offset (radians)
+%                  a(2): linear term (radians/fov)
+%                  The corresponding k-space shift (in samples) is a(2)/(2*pi)
 
-verbose = true;
+if nargin < 2
+    verbose = false;
+end
 
 [nx etl nCoils] = size(x);
 
@@ -83,57 +88,22 @@ if verbose
     title(sprintf('odd/even phase mismatch for all echo pairs (etl = %d)', etl));
 end
 
-% Do linear fit to the later (more stable) echoes
+% Do linear fit to the later (more stable) echo pairs
 mask = mask(:, (end/2+1):etl);  % = size(th)
 mask(:, 1:(end/2)) = false; 
-X = [(-nx/2+0.5):(nx/2-0.5)]' * ones(1, size(th,2));
-H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix (2d linear)
+X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, size(th,2));
+H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix
 a = H\th(mask); 
 if verbose
-    figure; subplot(131); im(th.*mask, 0.3*[-1 1]); colormap default; title('measured phase'); colorbar;
+    figure; subplot(311); im(th.*mask, 0.3*[-1 1]); colormap default; 
+    title('measured odd/even phase difference'); colorbar;
     thhat = embed(H*a, mask);
-    subplot(132); im(thhat.*mask, 0.3*[-1 1]); colormap default; title('linear fit'); colorbar;
-    subplot(133); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; title('difference'); colorbar;
+    subplot(312); im(thhat.*mask, 0.3*[-1 1]); colormap default; 
+    title('linear fit'); colorbar;
+    subplot(313); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; 
+    title('difference'); colorbar;
 end
 
 return
-
-
-
-pho = angle(x(end/2,1:2:end));
-dph = angle(exp(1i*phe)./exp(1i*pho)); % / (2*pi*n*sys.raster);
-offresPhase = mean(dph(2:end)); % exclude first echo
-x(:,1:2:end) = x(:,1:2:end).*exp(1i*offresPhase);
-%dCart(:,1:2:end,:) = dCart(:,1:2:end,:).*exp(1i*phOffset);
-
-% get odd/even echo linear phase offset
-phoe = angle(x(:,2:2:end)./x(:,1:2:end));
-tmp = angle(x2./x1.*exp(1i*angle(x1./x3)/2));
-th = th + abs(x1).^2.*exp(1i*tmp);
-xsos = xsos + abs(x1).^2;
-
-th = zeros(nx,1);
-xsos = zeros(nx,1);  % sum-of-squares coil combined image (for mask)
-	
-for ic = 1:1:nCoils
-    x1 = x(:,1:2:end);
-    x2 = x(:,2:2:end);
-
-	tmp = angle(x2./x1.*exp(1i*angle(x1./x3)/2));
-	th = th + abs(x1).^2.*exp(1i*tmp);
-	xsos = xsos + abs(x1).^2;
-end
-
-th = angle(th);
-xsos = sqrt(xsos);
-
-mask = xsos > 0.1*max(xsos(:));
-
-% fit phase difference to 2d plane
-H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix (2d linear)
-ph(isl,:) = H\th(mask);  
-
-thhat = embed(H*ph(isl,:)', mask);
-figure; plot([th thhat th-thhat]); legend
 
 
