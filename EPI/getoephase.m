@@ -73,7 +73,7 @@ if verbose
 end
 
 % spatial mask
-rssim = sqrt(sum(abs(x).^2, 3));
+rssim = sqrt(sum(abs(xc).^2, 3));
 mask = rssim > 0.1*max(rssim(:));
 
 % Get odd/even phase mismatch for all neighboring echo pairs
@@ -97,16 +97,20 @@ X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, size(th,2));
 H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix
 a = H\th(mask); 
 if verbose
-    figure; subplot(311); im(th.*mask, 0.3*[-1 1]); colormap default; 
+    figure; subplot(221); im(th.*mask, 0.3*[-1 1]); colormap default; 
     title('measured odd/even phase difference'); colorbar;
     thhat = embed(H*a, mask);
-    subplot(312); im(thhat.*mask, 0.3*[-1 1]); colormap default; 
+
+    subplot(222); im(thhat.*mask, 0.3*[-1 1]); colormap default; 
     title('linear fit'); colorbar;
-    subplot(313); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; 
+    subplot(223); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; 
     title('difference'); colorbar;
-%X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);  % see also getoephase.m
-%TH = a(1)*ones(size(X)) + a(2)*X;
-%figure; im(TH(:,(end/2+1):end).*mask, 0.3*[-1 1]); colormap default;
+
+    subplot(224);
+    X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);
+    TH = a(1)*ones(size(X)) + a(2)*X;
+    im(TH(:,(end/2+1):end).*mask, 0.3*[-1 1]); colormap default;
+    title('a(1) + a(2)*x'); colorbar;
 end
 
 return
