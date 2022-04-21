@@ -46,6 +46,11 @@ kx = reshape(kx, nr, ny);
 % fix first k-space location (NaN due to interp1)
 kx(1,:) = kx(2,:);
 
+% crop turns
+nCrop = floor(epiInfo.nBlipMax/2);
+kx = kx((nCrop+1):(end-nCrop),:);
+dat = dat((nCrop+1):(end-nCrop), :, :);
+
 % interpolate onto Cartesian grid
 kxo = kx(:,1);
 kxe = kx(:,2);
