@@ -37,27 +37,30 @@ for ic = 10 %1:nCoils
     tmp = tmp - tmp(end/2); % need common (arbitrary) reference since we're combining coils
     th = th + abs(xe).^2 .* exp(1i*tmp);
 end
+
 if etl/2 < 10 
     maSpan = 1;
 else
     maSpan = 5;   % moving-average span for smoothing
 end
+
 th = smooth(unwrap(angle(th)), maSpan);
 
 % Subtract off-resonance phase from all echoes
 if true
     % Fit straight line
-    X = [1:2:etl]';
+    X = [2:2:etl]';
     B = [ones(length(th),1) X];
     a = B\th(:);  % a(2) = off-resonance phase accrual per echo (radians)
-    XY = ones(nx,1) * [1:etl] - 1;  % [nx etl]
-    DPH = a(2)*repmat(XY, [1 1 nCoils]);  % linear fit to phase accrual (radians)
+    XY = ones(nx,1) * [1:etl] ;  % [nx etl]
+    DPH = a(1) + a(2)*repmat(XY, [1 1 nCoils]);  % linear fit to phase accrual (radians)
 else
-    % used measured off-resonance phase directly
+    % use measured off-resonance phase directly
     th = interp1(2:2:etl, th, 1:etl, 'linear', 'extrap');
     DPH = repmat(ones(nx,1) * th, [1 1 nCoils]);
-    DPH = DPH - th(1);  % reference to first echo (arbitrarily)
 end
+
+%DPH = DPH - th(1);  % reference to first echo (arbitrarily)
 
 xc = x.*exp(-1i*DPH);  % 'c' for 'corrected'
 
@@ -76,12 +79,11 @@ mask = rssim > 0.1*max(rssim(:));
 % Get odd/even phase mismatch for all neighboring echo pairs
 th = zeros(nx, etl/2);
 for ic = 1:nCoils
-    xo = x(:, 1:2:etl, ic);  % odd echoes
-    xe = x(:, 2:2:etl, ic);  % even echoes
+    xo = xc(:, 1:2:etl, ic);  % odd echoes
+    xe = xc(:, 2:2:etl, ic);  % even echoes
     th = th + abs(xe).^2 .* exp(1i*angle(xe./xo)); % NB! We assume no phase-wrap
 end
 th = angle(th);  
-th = th - th(end/2, end);  % arbitrary reference. Now any non-zero th indicates non-ideal phase.
 if verbose
     figure; im(th.*mask(:,2:2:end), 0.3*[-1 1]); colormap default; colorbar;
     xlabel('position (pixel) along x'); ylabel('odd/even phase mismatch');
@@ -102,6 +104,9 @@ if verbose
     title('linear fit'); colorbar;
     subplot(313); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; 
     title('difference'); colorbar;
+%X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);  % see also getoephase.m
+%TH = a(1)*ones(size(X)) + a(2)*X;
+%figure; im(TH(:,(end/2+1):end).*mask, 0.3*[-1 1]); colormap default;
 end
 
 return
