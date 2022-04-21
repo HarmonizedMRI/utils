@@ -27,9 +27,17 @@ x = fftshift(ifft(fftshift(d,1), [], 1),1);
 X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);  % see also getoephase.m
 TH = a(1)*ones(size(X)) + a(2)*X;
 
+if size(a,2) > 1
+    % 'Secret' way to use this function:
+    % use the measured odd/even phase mismatch instead of global linear fit
+    TH = a;
+else
+    TH = TH(:,2:2:end);
+end
+
 % Subtract phase mismatch from even echoes
 for ii = 1:size(d,3)
-    x(:,2:2:end,ii) = x(:,2:2:end,ii).*exp(-1i*TH(:,2:2:end));
+    x(:,2:2:end,ii) = x(:,2:2:end,ii).*exp(-1i*TH);
 end
 
 % Go back to data space and reshape

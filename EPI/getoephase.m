@@ -1,4 +1,4 @@
-function a = getoephase(x, verbose)
+function [a, th] = getoephase(x, verbose)
 % function a = getoephase(x, [verbose])
 %
 % Estimate odd/even EPI echo phase difference (linear and constant term)
