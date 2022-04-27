@@ -36,6 +36,13 @@ end
 dr = reshape(dr, nr, []);
 nm = size(dr,2);
 
+%dc = zeros(nx, nm);  % Cartesian data
+%kxc = [ (-nx/2+1/2):(nx/2-1/2) ] * 1/fov;  % cycles/cm
+%for ii = 1:nm
+%    dc(:,ii) = interp1(kx, dr(:,ii), kxc, 'spline', 'extrap');
+%end
+%dc = reshape(dc, [nx drSize(2:end)]);
+
 % Get Gmri object
 [~, A, dcf] = reconecho([], nx, [], [], kx, fov);
 
