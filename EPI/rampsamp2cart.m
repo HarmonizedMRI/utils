@@ -32,16 +32,24 @@ if nr ~= size(kx,1)
     error('Length of k-space and data (along 1st dimenstion) must match');
 end
 
+% Interpolate to Cartesian grid
+osf = 2;   % oversampling factor
+kxc = [ (-nx/2+1/(2*osf)):(1/osf):(nx/2-1/(2*osf)) ] * 1/fov;  % cycles/cm
+d1 = interp1(kx, dr, kxc, 'spline', 'extrap');
+
+% crop fov
+x1 = fftshift(ifft(fftshift(d1,1), [], 1),1);
+x1 = x1( (nx-nx/2+1):(nx+nx/2), :);
+x1 = reshape(x1, [nx drSize(2:end)]);
+dc = fftshift(fft(fftshift(x1,1), [], 1),1);
+
+return
+
+% The following uses NUFFT and avoids apodization, but is ~20x slower
+
 % reshape to 2D for looping
 dr = reshape(dr, nr, []);
 nm = size(dr,2);
-
-%dc = zeros(nx, nm);  % Cartesian data
-%kxc = [ (-nx/2+1/2):(nx/2-1/2) ] * 1/fov;  % cycles/cm
-%for ii = 1:nm
-%    dc(:,ii) = interp1(kx, dr(:,ii), kxc, 'spline', 'extrap');
-%end
-%dc = reshape(dc, [nx drSize(2:end)]);
 
 % Get Gmri object
 [~, A, dcf] = reconecho([], nx, [], [], kx, fov);
