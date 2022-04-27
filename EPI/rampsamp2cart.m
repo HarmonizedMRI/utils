@@ -1,7 +1,6 @@
 function dc = rampsamp2cart(dr, kx, nx, fov)
 %
-% Interpolate ramp-sampled data (e.g., EPI) to Cartesian grid
-% using NUFFT.
+% Interpolate ramp-sampled data (e.g., EPI) to Cartesian grid.
 %
 % Inputs:
 %  dr      [nr, ...]   Ramp-sampled raw data along 1st ("x") dimension 
@@ -13,7 +12,7 @@ function dc = rampsamp2cart(dr, kx, nx, fov)
 %  dc      [nx, ...]   Data interpolated onto Cartesian grid along x
 %
 % To test:
-% >> rampsamp2cart("test");
+% >> rampsamp2cart('test');
 
 if strcmp(dr, "test")
 	sub_test;
