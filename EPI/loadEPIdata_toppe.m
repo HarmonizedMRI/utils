@@ -54,7 +54,7 @@ dat = dat((nCrop+1):(end-nCrop), :, :);
 % interpolate onto Cartesian grid
 kxo = kx(:,1);
 kxe = kx(:,2);
-fprintf('Interpolating... \n');
+fprintf('Interpolating... ');
 dco = rampsamp2cart(dat(:, 1:2:end, :), kxo, nx, fov);   % odd echoes
 dce = rampsamp2cart(dat(:, 2:2:end, :), kxe, nx, fov);   % even echoes
 fprintf(' done\n');
