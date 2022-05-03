@@ -42,10 +42,10 @@ x1 = x1( (nx-nx/2+1):(nx+nx/2), :);
 
 % Deapodize
 dr2 = 0*dr(:,1,1);
-dr2(round(end/2)+1) = 1;
+dr2(round(end/2)+1) = 1;  % impulse
 d2 = interp1(kx, dr2, kxc, 'spline', 'extrap');
-ap = abs(fftshift(ifft(fftshift(d2))))'; % apodization
-ap = ap( (nx-nx/2+1):(nx+nx/2));
+ap = abs(fftshift(ifft(fftshift(d2))))'; % image-space apodization
+ap = ap((nx-nx/2+1):(nx+nx/2));
 ap = ap/max(ap);
 x1 = bsxfun(@times, 1./ap, x1);
 
