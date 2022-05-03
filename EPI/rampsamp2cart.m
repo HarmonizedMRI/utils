@@ -39,6 +39,17 @@ d1 = interp1(kx, dr, kxc, 'spline', 'extrap');
 % crop fov
 x1 = fftshift(ifft(fftshift(d1,1), [], 1),1);
 x1 = x1( (nx-nx/2+1):(nx+nx/2), :);
+
+% Deapodize
+dr2 = 0*dr(:,1,1);
+dr2(round(end/2)+1) = 1;
+d2 = interp1(kx, dr2, kxc, 'spline', 'extrap');
+ap = abs(fftshift(ifft(fftshift(d2))))'; % apodization
+ap = ap( (nx-nx/2+1):(nx+nx/2));
+ap = ap/max(ap);
+x1 = bsxfun(@times, 1./ap, x1);
+
+% Back to k-space
 x1 = reshape(x1, [nx drSize(2:end)]);
 dc = fftshift(fft(fftshift(x1,1), [], 1),1);
 
