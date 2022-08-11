@@ -28,10 +28,9 @@ if mod(etl,2)
 end
 
 % Estimate off-resonance phase from even echoes (center line).
-% Only need one 'slice'.
 % Magnitude-squared coil weighting as in phase-contrast MRI.
 th = zeros(1, etl/2);
-for ic = 10 %1:nCoils
+for ic = 1:nCoils
     xe = x(end/2,2:2:etl,ic);  % even echoes
     tmp = unwrap(angle(xe));
     tmp = tmp - tmp(end/2); % need common (arbitrary) reference since we're combining coils
@@ -73,8 +72,10 @@ if verbose
 end
 
 % spatial mask
+% exclude object outside center FOV/2 (in x)
 rssim = sqrt(sum(abs(xc).^2, 3));
 mask = rssim > 0.1*max(rssim(:));
+mask([1:round(nx/4) round(3/4*nx):end],:) = false;
 
 % Get odd/even phase mismatch for all neighboring echo pairs
 th = zeros(nx, etl/2);
@@ -85,7 +86,7 @@ for ic = 1:nCoils
 end
 th = angle(th);  
 if verbose
-    figure; im(th.*mask(:,2:2:end), 0.3*[-1 1]); colormap default; colorbar;
+    figure; im(th.*mask(:,2:2:end), pi*[-1 1]); colormap default; colorbar;
     xlabel('position (pixel) along x'); ylabel('odd/even phase mismatch');
     title(sprintf('odd/even phase mismatch for all echo pairs (etl = %d)', etl));
 end
@@ -97,19 +98,25 @@ X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, size(th,2));
 H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix
 a = H\th(mask); 
 if verbose
-    figure; subplot(221); im(th.*mask, 0.3*[-1 1]); colormap default; 
+    % display range
+    R = [min(th(mask)) max(th(mask))];
+
+    figure; 
+
+    subplot(221); im(th.*mask, R); colormap default; 
     title('measured odd/even phase difference'); colorbar;
     thhat = embed(H*a, mask);
 
-    subplot(222); im(thhat.*mask, 0.3*[-1 1]); colormap default; 
+    subplot(222); im(thhat.*mask, R); colormap default; 
     title('linear fit'); colorbar;
+
     subplot(223); im((thhat-th).*mask, 0.1*[-1 1]); colormap default; 
     title('difference'); colorbar;
 
     subplot(224);
     X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, etl);
     TH = a(1)*ones(size(X)) + a(2)*X;
-    im(TH(:,(end/2+1):end).*mask, 0.3*[-1 1]); colormap default;
+    im(TH(:,(end/2+1):end).*mask, R); colormap default;
     title('a(1) + a(2)*x'); colorbar;
 end
 
