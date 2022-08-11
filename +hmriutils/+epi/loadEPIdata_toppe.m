@@ -14,11 +14,15 @@ function dat = loadEPIdata_toppe(pfile, frame, epiInfo, sys)
 % Output:
 %   dat   [nx ny nz nCoils]
 
-N = epiInfo.N;
+N = epiInfo.imSize;
+pf_ky = epiInfo.pf_ky;
+%Ry = epiInfo.Ry;
+Ry = 1;  % for now
 FOV = epiInfo.FOV;
 gpre = epiInfo.gpre;   % x prewinder (G/cm)
 gx = epiInfo.gx;       % full echo train (G/cm)
 gx1 = epiInfo.gx1;     % one echo
+nBlipMax = epiInfo.nBlipMax;   % number of 4us samples in EPI turn (y gradient blip)
 
 [dat, rdb_hdr] = toppe.utils.loadpfile(pfile);
 dat = flipdim(dat, 1);  
@@ -33,21 +37,23 @@ nFID = size(dat,1);
 % get kspace locations
 % apply 1/2 sample shift to align echoes
 nx = N(1); ny = N(2); fov = FOV(1);
+etl = ceil(pf_ky*N(2)/Ry);
 kx = sys.raster*sys.gamma*(cumsum(gx) - sum(gpre.x));  % cycles/cm
 kx = interp1(1:nFID, kx, (1:nFID) - 0.5);
 
 % sort into 2d arrays
 nr = length(gx1);
-dat = dat(1:(nr*ny), :);
-kx = kx(1:(nr*ny));
-dat = reshape(dat, nr, ny, []);
-kx = reshape(kx, nr, ny);
+nSamp = nr*etl;  % number of 4us samples in EPI readout
+dat = dat(1:nSamp, :);
+kx = kx(1:nSamp);
+dat = reshape(dat, nr, etl, []);
+kx = reshape(kx, nr, etl);
 
 % fix first k-space location (NaN due to interp1)
 kx(1,:) = kx(2,:);
 
 % crop turns
-nCrop = floor(epiInfo.nBlipMax/2);
+nCrop = floor(nBlipMax/2);
 kx = kx((nCrop+1):(end-nCrop),:);
 dat = dat((nCrop+1):(end-nCrop), :, :);
 
@@ -55,15 +61,15 @@ dat = dat((nCrop+1):(end-nCrop), :, :);
 kxo = kx(:,1);
 kxe = kx(:,2);
 fprintf('Interpolating... ');
-dco = rampsamp2cart(dat(:, 1:2:end, :), kxo, nx, fov);   % odd echoes
-dce = rampsamp2cart(dat(:, 2:2:end, :), kxe, nx, fov);   % even echoes
+dco = hmriutils.epi.rampsamp2cart(dat(:, 1:2:end, :), kxo, nx, fov);   % odd echoes
+dce = hmriutils.epi.rampsamp2cart(dat(:, 2:2:end, :), kxe, nx, fov);   % even echoes
 fprintf(' done\n');
-dat = zeros(nx, ny, nz*nCoils);
+dat = zeros(nx, etl, nz*nCoils);
 dat(:,1:2:end,:) = dco;
 dat(:,2:2:end,:) = dce;
 
 % Reshape
-dat = reshape(dat, [nx ny nz nCoils]);
+dat = reshape(dat, [nx etl nz nCoils]);
 
 return
 
