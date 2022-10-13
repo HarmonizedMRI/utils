@@ -107,7 +107,7 @@ A = Gmri([fov*kx(:)],mask,'nufft',nufft_args);
 yr = A*x;
 
 % Interpolated onto Cartesian grid 
-yc = rampsamp2cart(yr, kx, nx, fov);
+yc = hmriutils.epi.rampsamp2cart(yr, kx, nx, fov);
 
 % Do IFT and compare with true object
 xhat = fftshift(ifft(fftshift(yc,1), [], 1),1);
