@@ -1,4 +1,5 @@
 function dc = rampsamp2cart(dr, kx, nx, fov, method)
+% function dc = rampsamp2cart(dr, kx, nx, fov, method)
 %
 % Interpolate ramp-sampled data (e.g., EPI) to Cartesian grid.
 %
@@ -27,7 +28,7 @@ if strcmp(dr, "test")
 end
 
 if ~exist('method', 'var')
-    method = 'spline';
+    method = 'nufft';
 end
 
 nd = ndims(dr);
@@ -64,7 +65,7 @@ if strcmp(method, 'spline')
     % Back to k-space
     x1 = reshape(x1, [nx drSize(2:end)]);
     dc = fftshift(fft(fftshift(x1,1), [], 1),1);
-else
+elseif strcmp(method, 'nufft')
     % The following uses NUFFT and avoids apodization, but is ~20x slower
 
     % reshape to 2D for looping
@@ -83,6 +84,9 @@ else
 
     % Reshape
     dc = reshape(dc, [nx drSize(2:end)]);
+
+else
+    error('Method is either ''spline'' or ''nufft''');
 end
 
 return
