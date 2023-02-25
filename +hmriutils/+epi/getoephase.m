@@ -33,7 +33,7 @@ th = zeros(1, etl/2);
 for ic = 1:nCoils
     xe = x(end/2,2:2:etl,ic);  % even echoes
     tmp = unwrap(angle(xe));
-    tmp = tmp - tmp(end/2); % need common (arbitrary) reference since we're combining coils
+    tmp = tmp - tmp(floor(end/2)); % need common (arbitrary) reference since we're combining coils
     th = th + abs(xe).^2 .* exp(1i*tmp);
 end
 
@@ -93,7 +93,7 @@ end
 
 % Do linear fit to the later (more stable) echo pairs
 mask = mask(:, (end/2+1):etl);  % = size(th)
-mask(:, 1:(end/2)) = false; 
+mask(:, 1:floor(end/2)) = false;
 X = [(-nx/2+0.5):(nx/2-0.5)]'/nx * ones(1, size(th,2));
 H = [ones(sum(mask(:)),1) X(mask)];  % spatial basis matrix
 a = H\th(mask); 
