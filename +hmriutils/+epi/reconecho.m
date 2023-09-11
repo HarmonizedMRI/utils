@@ -37,6 +37,8 @@ return
 
 function sub_test
 
+import hmriutils.epi.*
+
 % 1d test object
 nx = 128;
 p = phantom(nx);
