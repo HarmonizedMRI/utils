@@ -64,11 +64,12 @@ end
 xc = x.*exp(-1i*DPH);  % 'c' for 'corrected'
 
 if verbose
-    figure; subplot(121); im(angle(x(:,:,14)));
-    subplot(122); im(angle(xc(:,:,14)));
-    figure; ic = 24;
-    plot(angle(x(end/2,:,ic)),'r'); hold on
-    plot(angle(xc(end/2,:,ic)), 'g'); hold on
+    coil = ceil(nCoils/2);
+    figure; subplot(121); im(angle(x(:,:,coil)));
+    subplot(122); im(angle(xc(:,:,coil)));
+    figure;
+    plot(angle(x(end/2,:,coil)),'r'); hold on
+    plot(angle(xc(end/2,:,coil)), 'g'); hold on
 end
 
 % spatial mask
