@@ -1,4 +1,4 @@
-function dat = loadSMSEPIdata_ge(pfile, frame, etl, nz, mb, readoutfile)
+function dat = loadSMSEPIdata_ge(pfile, frame, imSize, etl, mb, readoutfile)
 %
 % Load ramp-sampled EPI data acquired with smsepi.seq on GE scanners,
 % and interpolate onto cartesian grid.
@@ -8,8 +8,8 @@ function dat = loadSMSEPIdata_ge(pfile, frame, etl, nz, mb, readoutfile)
 % ------
 % pfile         File location of the P-file containing the SMS-EPI data
 % frame         Temporal frame to read
-% etl           echo train length
-% nz            number of slices in reconstructed image volume
+% imsize        [nx ny nz], matrix size of the reconstructed volume
+% etl           echo train length (less than or equal to ny, depending on partial Fourier factor)
 % mb            SMS/multiband factor
 % readoutfile   Name of .mod file containing the EPI echo trapezoid waveform.
 %
@@ -18,7 +18,8 @@ function dat = loadSMSEPIdata_ge(pfile, frame, etl, nz, mb, readoutfile)
 % data         k-space data for the given frame
 %                Size: [nx etl npartitions ncoils], where npartitions = nz/mb, 
 %                      i.e., the number of slices in the full reconstructed volume
-%                      divided by the multiband factor
+%                      divided by the multiband factor.
+%                      nx = image size along readout in the reconstructed volume.
 %
 % Outputs
 % -------
@@ -32,18 +33,18 @@ function dat = loadSMSEPIdata_ge(pfile, frame, etl, nz, mb, readoutfile)
 %                      of simultaneously excited slices. Also note that
 %                      nsamples = sum(mask(:))
 
+[nx ny nz] = deal(imsize(1), imsize(2), imsize(3));
+
+npartitions = nz/mb;   % number of TRs/shots needed to acquire data for one frame
 
 % Load data for one frame
 % nfid = number of ADC samples per echo (>nx due to ramp sampling)
 % Note: nechoes = 1 by construction, see 'Pulseq on GE' manual
 d = toppe.utils.loadpfile(fn, [], frame, frame);
-d = flipdim(d, 1);      % [nfid ncoils 1 1 etl*npartitions]
-
-d = permute(d, [1 2 5 3 4]);   % [nfid ncoils etl*npartitions] 
-
+d = flipdim(d, 1);                        % [nfid ncoils 1 1 etl*npartitions]
+d = permute(d, [1 2 5 3 4]);              % [nfid ncoils etl*npartitions] 
 [nfid, ncoils, nviews] = size(d);
 
-npartitions = nz/mb;
 assert(nviews == etl*npartitions, ...
     'Number of views (%d) in data file does not equal etl*npartitions', nviews);
 
@@ -52,17 +53,16 @@ d = reshape(d, nfid, ncoils, etl, npartitions);
 d = permute(d, [1 3 4 2]);   % [nfid etl npartitions ncoils]
 
 % Get kspace locations (ramp sampled).
-% 
 [rf,gx,gy,gz,desc,paramsint16,paramsfloat,hdr] = toppe.readmod(readoutfile);
 gamma = 4.2576;      % kHz/Gauss
 dt = 4e-3;   % GE gradient raster time, ms
 kx = gamma*dt*cumsum(gx);   % cycles/cm
 kx_ctr = mean(kx(end/2:(end/2)+1));
-kx = kx - kx_ctr;    % assume that echo is sampled symmetrically about kx=0
+kx = kx - kx_ctr;  
 kx = kx((hdr.npre+1):(hdr.npre+hdr.rfres));    % ADC on during this portion of the waveform
 dur = numel(kx)*dt;
 kxo = interp1([0 dt:dt:dur], [0 kx(:)'], dt/2:dt/2:dur);  % odd echoes
-kxe = fliplr(kxo);
+kxe = interp1([0 dt:dt:dur], [0 flipor(kx(:)')], dt/2:dt/2:dur);  % odd echoes
 
 % Interpolate onto Cartesian grid
 fprintf('Interpolating... ');
