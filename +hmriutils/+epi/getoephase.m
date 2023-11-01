@@ -1,5 +1,5 @@
-function [a, th] = getoephase(x, verbose)
-% function a = getoephase(x, [verbose])
+function [a, th] = getoephase(x, verbose, threshold)
+% function a = getoephase(x, [verbose=false], [threshold=0.1])
 %
 % Estimate odd/even EPI echo phase difference (linear and constant term)
 % from one EPI echo train (without phase-encoding blips).
@@ -19,6 +19,9 @@ function [a, th] = getoephase(x, verbose)
 
 if nargin < 2
     verbose = false;
+end
+if nargin < 3
+    threshold = 0.1;   % magnitude threshold (max amplitude normalized to 1)
 end
 
 [nx etl nCoils] = size(x);
@@ -75,7 +78,7 @@ end
 % spatial mask
 % exclude object outside center FOV/2 (in x)
 rssim = sqrt(sum(abs(xc).^2, 3));
-mask = rssim > 0.1*max(rssim(:));
+mask = rssim > threshold*max(rssim(:));
 mask([1:round(nx/4) round(3/4*nx):end],:) = false;
 
 % Get odd/even phase mismatch for all neighboring echo pairs
