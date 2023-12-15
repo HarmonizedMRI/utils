@@ -1,7 +1,6 @@
 function d = loadframeraw_ge(fn, etl, np, frame, acqOrder)
 %
 % Load SMS-EPI raw data for one temporal frame. 
-% Assumes maxView = np*etl, unless acqOrder == true
 %
 % Inputs
 %   fn               P-file name
@@ -9,16 +8,13 @@ function d = loadframeraw_ge(fn, etl, np, frame, acqOrder)
 %   np               number of partition/excitations (groups of SMS slices) per frame
 %   frame            frame to load
 %
-% Input option
-%   acqOrder         true or false (default)
-%
 % Ouput
 %   d                [nFID etl np nc]
 
 import hmriutils.io.*
 
 if nargin < 5
-    acqOrder = false;
+    acqOrder = true;
 end
 
 if ~acqOrder
