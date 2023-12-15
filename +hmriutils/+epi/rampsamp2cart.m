@@ -8,7 +8,7 @@ function dc = rampsamp2cart(dr, kx, nx, fov, method)
 %  kx      [nr 1]      k-space sampling locations (cycles/cm)
 %  nx      [1]         Number of pixels (along x) in reconstructed image
 %  fov     [1]         FOV (cm) along x
-%  method  string      'spline' (default) or 'nufft' (accurate, but slower)
+%  method  string      'nufft' (default) or 'spline' (faster but less accurate)
 %
 % Output:
 %  dc      [nx, ...]   Data interpolated onto Cartesian grid along x
