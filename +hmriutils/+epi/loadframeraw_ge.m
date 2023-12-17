@@ -11,7 +11,7 @@ function d = loadframeraw_ge(fn, etl, np, frame, acqOrder)
 % Ouput
 %   d                [nFID etl np nc]
 
-import hmriutils.io.*
+import hmriutils.io.ge.*
 
 if nargin < 5
     acqOrder = true;
@@ -28,7 +28,7 @@ if ~acqOrder
     d = reshape(d, nfid, nc, etl, np);
     d = permute(d, [1 3 4 2]);   % [nfid etl np nc]
 else
-    d = toppe.utils.loadpfile(fn, [], [], [], 'acqOrder', true);    % [nfid ncoils nframes*np*etl]
+    d = loadpfile(fn, [], [], [], 'acqOrder', true);    % [nfid ncoils nframes*np*etl]
     d = flipdim(d, 1);                % tv6 flips data along FID direction
     iStart = (frame-1)*np*etl + 1;
     iStop = iStart + np*etl-1;

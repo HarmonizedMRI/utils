@@ -19,7 +19,7 @@ function [dat, rdb_hdr] = loadpfile(pfile,echo,slicestart,sliceend,varargin)
 %  [nFID, nc, nDabSlice, 1, maxView]
 
 import hmriutils.*
-import hmriutils.io.*
+import hmriutils.io.ge.*
 
 %% Load input arguments
 % Set defaults and parse varargin
