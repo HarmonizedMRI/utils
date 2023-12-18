@@ -12,13 +12,6 @@ function [w, pinvA] = slgcal(ycal, z, c, K, varargin)
 %   lam      [1]        Tikhonov regularization constant for calculating w. Default: 0
 %   pinvA               pinv(A), where A is a matrix constructed from ycal inside calibration region, see below.
 %                       Default: construct from ycal and return to caller
-%   slweights  [mb+1]   Determines slice weights when forming A. Default: [1 zeros(1,mb)] (traditional slice GRAPPA)
-%                       slweights(1) = weight for collapsed slices
-%                       slweights(2:mb+1) = weight for individual slices (leakage block)
-%                       Examples:
-%                         slweights = [1 zeros(1,mb)]: traditional slice GRAPPA (no leakage block)
-%                         slweights = [0 ones(1,mb)]: split slice GRAPPA (leakage block)
-%
 % Output:
 %   w        [K(1) K(2) nc]      slice-GRAPPA weights (set of nc 2D convolution kernels)
 %
@@ -47,8 +40,9 @@ end
 
 arg.lam = [];    
 arg.pinvA = [];
-arg.slweights = [0 ones(1,mb)];
 arg = toppe.utils.vararg_pair(arg, varargin);
+
+slweights = [0 ones(1,mb)];
 
 assert(xor(isempty(arg.lam), isempty(arg.pinvA)), 'Either lam or pinvA (or neither) must be provided');
 
@@ -71,7 +65,7 @@ assert(N >= prod(K)*nc, 'number of calibration points must be >= prod(K)*nc (nc 
 
 % construct A
 if isempty(arg.pinvA)
-    A = sub_getA(ycal, mask, K, arg.slweights, lam);
+    A = sub_getA(ycal, mask, K, slweights, lam);
     pinvA = pinv(A); 
 else
     pinvA = arg.pinvA;
@@ -79,7 +73,7 @@ end
 
 % calculate w
 tmp = ycal(:,:,z,c);
-b = arg.slweights(1)*tmp(mask);
+b = slweights(1)*tmp(mask);
 for iz = 1:mb
     tmp = ycal(:,:,iz,c);
     b = [b; (iz==z)*tmp(mask)];
