@@ -1,11 +1,11 @@
-function [ysms, ph] = simulatesmsepishot(d_ex, nz, IZ, smask)
+function [ysms, ph] = simulatesmsepishot(d_ex, nz, Z, smask)
 %
 % Simulate EPI sampling (one shot) of SMS group 'd_ex'.
 %
 % Inputs
 %   d_ex    [nx ny mb nc]    Excited slice group (k-space) after excitation
 %   nz      [1]              Number of slices in full image volume
-%   IZ      [mb]             Slice indices in full image volume
+%   Z       [mb]             Slice indices in full image volume
 %   smask   [nx ny mb]       sampled k-space locations (view readout as sampling 3D k-space),
 %                            see getsamplingmask.m
 %
@@ -31,7 +31,7 @@ for ikz_g = -mb/2:mb/2-1
     kz_g = ikz_g*deltak;      % kz-space encoding level in unit of 1/pixel
     dtmp = zeros(size(d_ex));
     for iz_g = 1:mb             
-        kz = kz_g*(IZ(iz_g)-iz_iso); 
+        kz = kz_g*(Z(iz_g)-iz_iso); 
         dtmp(:,:,:,iz_g) = d_ex(:,:,:,iz_g) * exp(-1i*2*pi*kz); 
     end
 
@@ -54,7 +54,7 @@ ysms = squeeze(sum(dsms3d, 3));   % [nx ny nc]
 % return phase difference w.r.t. input, after phase correction
 % (feels like there's an easier way to get ph but this works)
 ph = zeros(ny, mb);
-ysmspc = hmriutils.epi.slg.smsphasecorrect(ysms, IZ(1), nz, smask);
+ysmspc = hmriutils.epi.slg.smsphasecorrect(ysms, Z(1), nz, smask);
 c = 1;
 for z = 1:mb
     ph(:,z) = angle(ysmspc(nx/2,:,c)./d_ex(nx/2,:,c,z));
