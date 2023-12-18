@@ -1,5 +1,5 @@
-function [Irss, w] = recon(ysms, ycal, IZ, nz, smask, K, w)
-% function [Irss, w] = recon(ysms, ycal, IZ, nz, smask, K, w)
+function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
+% function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
 %
 % Reconstruct SMS data with split slice GRAPPA
 %
@@ -7,7 +7,7 @@ function [Irss, w] = recon(ysms, ycal, IZ, nz, smask, K, w)
 %   ysms    [nx ny nc]        SMS EPI data
 %   ycal    [nx ny mb nc]     Single-slice, unshifted 'ACS' k-space data for slice GRAPPA calibration.
 %                             Non-zero values define the calibration region.
-%   IZ      [mb]              SMS slice indices in full image volume
+%   Z      [mb]               SMS slice indices in full image volume
 %   nz      [1]               Number of slices in full image volume
 %   smask   [nx ny mb]        Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
@@ -23,10 +23,10 @@ function [Irss, w] = recon(ysms, ycal, IZ, nz, smask, K, w)
 [nx ny mb nc] = size(ycal);
 
 % phase-correct sms data for slice groups not centered at iso-center
-ysms = hmriutils.epi.slg.smsphasecorrect(ysms, IZ(1), nz, smask);
+ysms = hmriutils.epi.slg.smsphasecorrect(ysms, Z(1), nz, smask);
 
 % apply FOV shift to calibration data to match SMS acquisition
-ph = hmriutils.epi.slg.getsmsphasemodulation(nz, IZ, smask);
+ph = hmriutils.epi.slg.getsmsphasemodulation(nz, Z, smask);
 ycal = hmriutils.epi.slg.shiftslices(ycal, ph);
 
 % calculate slice GRAPPA weights (if not provided by caller)
