@@ -1,20 +1,20 @@
-function dout = smsphasecorrect(d, z_start, nz, mask)
-% function dout = smsphasecorrect(d, z_start, nz, mask)
+function dout = smsphasecorrect(d, z_start, nz, smask)
+% function dout = smsphasecorrect(d, z_start, nz, smask)
 %
 % Phase-correct SMS EPI data. This is necessary when the
 % center (mb/2+1) slice in the SMS group is offset 
 % from the scanner iso-center.
 % 
 % Inputs
-%   d         [nx ny nc]      One CAIPI EPI shot
-%   nz        [1]             Number of slices in full image volume
-%   z_start   [1]             Slice index of first slice in SMS slice group (partition)
-%   mask      [nx ny mb]      k-space sampling mask (view EPI shot as undersampled 3D k-space data)
+%   d          [nx ny nc]      One CAIPI EPI shot
+%   nz         [1]             Number of slices in full image volume
+%   z_start    [1]             Slice index of first slice in SMS slice group (partition)
+%   smask      [nx ny mb]      k-space sampling mask (view EPI shot as undersampled 3D k-space data)
 %
 % Output
 %   dout      [nx ny nc]
 
-[nx ny mb] = size(mask);
+[nx ny mb] = size(smask);
 nc = size(d,3);
 
 % Prepare the data for partition (SMS slice group) p.
@@ -29,7 +29,7 @@ for c = 1:nc
     d3d(:,:,:,c) = repmat(d(:,:,c), 1, 1, mb);
 end
 for c = 1:nc
-    d3d(:,:,:,c) = d3d(:,:,:,c).*mask;
+    d3d(:,:,:,c) = d3d(:,:,:,c).*smask;
 end
 
 np = nz/mb;                         % number of partitions (slice groups)
