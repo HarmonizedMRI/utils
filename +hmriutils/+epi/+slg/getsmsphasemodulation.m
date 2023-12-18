@@ -1,8 +1,9 @@
 function ph = getsmsphasemodulation(nz, Z, smask)
 %
 % Get phase modulation due to gz blips along the EPI train.
-% This is used to shift reconstructed slices back to center of FOV
-% (or more generally, to undo effect of z blips).
+% This is used to shift (in-plane) the calibration slices to match 
+% the acquired SMS data, and to shift reconstructed slices 
+% back to center of FOV (or more generally, to undo effect of z blips).
 %
 % Inputs
 %   nz      [1]             Number of slices in full image volume
