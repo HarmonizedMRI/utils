@@ -42,7 +42,7 @@ arg.lam = [];
 arg.pinvA = [];
 arg = toppe.utils.vararg_pair(arg, varargin);
 
-slweights = [0 ones(1,mb)];
+slweights = ones(1,mb);
 
 assert(xor(isempty(arg.lam), isempty(arg.pinvA)), 'Either lam or pinvA (or neither) must be provided');
 
@@ -72,8 +72,7 @@ else
 end
 
 % calculate w
-tmp = ycal(:,:,z,c);
-b = slweights(1)*tmp(mask);
+b = [];
 for iz = 1:mb
     tmp = ycal(:,:,iz,c);
     b = [b; (iz==z)*tmp(mask)];
@@ -97,14 +96,13 @@ nc = size(ycal, 4);
 
 N = sum(mask(:));              % number of calibration points
 
-A = zeros(N*(mb+1), prod(K), nc);
+A = zeros(N*mb, prod(K), nc);
 
-A(1:N,:,:) = sub_getsubA(squeeze(sum(ycal,3)), mask, K, slweights(1));
 for z = 1:mb
-    A((1:N)+N*z,:,:) = sub_getsubA(squeeze(ycal(:,:,z,:)), mask, K, slweights(z+1));
+    A((1:N)+N*(z-1),:,:) = sub_getsubA(squeeze(ycal(:,:,z,:)), mask, K, slweights(z));
 end
 
-A = reshape(A, N*(mb+1), prod(K)*nc);
+A = reshape(A, N*mb, prod(K)*nc);
 
 A = [A; lam*eye(prod(K)*nc)];  % add regularization
 
