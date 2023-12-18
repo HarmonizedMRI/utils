@@ -1,20 +1,20 @@
 function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
-% function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
+% function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, [w])
 %
 % Reconstruct SMS data with split slice GRAPPA
 %
 % Inputs:
-%   ysms    [nx ny nc]        SMS EPI data
+%   ysms    [nx ny nc]        SMS EPI data (one RF shot)
 %   ycal    [nx ny mb nc]     Single-slice, unshifted 'ACS' k-space data for slice GRAPPA calibration.
 %                             Non-zero values define the calibration region.
 %   Z       [mb]              SMS slice indices in full image volume
 %   nz      [1]               Number of slices in full image volume
 %   smask   [nx ny mb]        Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
-%   K       [2]               kernel size (e.g., [5 5] or [7 7])
+%   K       [2]               Kernel size (e.g., [5 5] or [7 7])
 %
 % Optional input:
-%   w       [mb nc}]          slice GRAPPA weights. If not provided, calculate and return to caller.
+%   w       [mb nc]           Slice GRAPPA weights. If not provided, calculate and return to caller.
 %
 % Outputs:
 %   Irss    [nx ny mb]        Root-sum-of-squares coil-combined reconstructed image
