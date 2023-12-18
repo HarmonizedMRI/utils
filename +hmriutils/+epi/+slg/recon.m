@@ -7,7 +7,7 @@ function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
 %   ysms    [nx ny nc]        SMS EPI data
 %   ycal    [nx ny mb nc]     Single-slice, unshifted 'ACS' k-space data for slice GRAPPA calibration.
 %                             Non-zero values define the calibration region.
-%   Z      [mb]               SMS slice indices in full image volume
+%   Z       [mb]              SMS slice indices in full image volume
 %   nz      [1]               Number of slices in full image volume
 %   smask   [nx ny mb]        Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
