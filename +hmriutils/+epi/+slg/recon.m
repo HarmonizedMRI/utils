@@ -14,11 +14,12 @@ function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
 %   K       [2]               Kernel size (e.g., [5 5] or [7 7])
 %
 % Optional input:
-%   w       [mb nc]           Slice GRAPPA weights. If not provided, calculate and return to caller.
+%   w       {mb nc} cell array    w{z,c} = slice GRAPPA weights for slice z, coil c.
+%                                 If not provided, calculate and return to caller.
 %
 % Outputs:
 %   Irss    [nx ny mb]        Root-sum-of-squares coil-combined reconstructed image
-%   w       [mb nc]           slice GRAPPA weights
+%   w                         slice GRAPPA weights
 
 [nx ny mb nc] = size(ycal);
 
