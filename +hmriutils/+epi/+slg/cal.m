@@ -1,4 +1,4 @@
-function [w, pinvA] = slgcal(ycal, z, c, K, varargin)
+function [w, pinvA] = cal(ycal, z, c, K, varargin)
 % Return slice GRAPPA weights for one coil and one target slice
 %
 % Inputs:
@@ -197,9 +197,9 @@ w_hat = reshape(w_hat, size(w));  % for plotting
 assert(abs(norm(w(:)-w_hat(:))) < tol, 'Test failed: A\ycal(mask) ~= w_true');
 subplot(121); im(abs(w-w_hat));  title('w_true - A\ycal(mask)'); colorbar;
 
-% Check that we get w back by calling slgcal() with lam=0
+% Check that we get w back by calling cal() with lam=0
 lam = 0;
-w_hat2 = slgcal(ysms, ycal, K, 'lam', lam);
+w_hat2 = cal(ysms, ycal, K, 'lam', lam);
 w_hat2 = reshape(w_hat2, prod(K), nc); 
 assert(abs(norm(w(:)-w_hat2(:))) < tol, 'Test failed: slgcal() ~= w_true');
 subplot(122); im(abs(w-w_hat2)); title('w_true - slgcal()'); colorbar;

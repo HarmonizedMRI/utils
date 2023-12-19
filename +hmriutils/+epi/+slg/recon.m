@@ -33,11 +33,11 @@ ycal = hmriutils.epi.slg.shiftslices(ycal, ph);
 % calculate slice GRAPPA weights (if not provided by caller)
 if ~exist('w', 'var')
     tic
-    [~, pinvA] = hmriutils.epi.slg.slgcal(ycal, 1, 1, K, 'lam', 1.^2);  % get pinv(A)
+    [~, pinvA] = hmriutils.epi.slg.cal(ycal, 1, 1, K, 'lam', 1.^2);  % get pinv(A)
     for z = 1:mb
         fprintf('.');
         for c = 1:nc
-            w{z,c} = hmriutils.epi.slg.slgcal(ycal, z, c, K, 'pinvA', pinvA);
+            w{z,c} = hmriutils.epi.slg.cal(ycal, z, c, K, 'pinvA', pinvA);
         end
     end
     fprintf('\nCalibration time: %.2fs\n', toc);
