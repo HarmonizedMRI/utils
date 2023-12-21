@@ -14,9 +14,9 @@ function [Irss yout] = recon_pfky(y, ny, method)
 
 if nargin < 3
     method = 'zerofill';
-else
-    method = lower(method);
 end
+
+method = lower(method);
 
 [nx etl nz nc] = size(y);
 
