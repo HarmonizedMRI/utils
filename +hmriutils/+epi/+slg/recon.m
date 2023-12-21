@@ -1,15 +1,15 @@
-function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
-% function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, [w])
+function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, w)
+% function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, [w])
 %
 % Reconstruct SMS data with split slice GRAPPA
 %
 % Inputs:
-%   ysms    [nx ny nc]        SMS EPI data (one RF shot)
-%   ycal    [nx ny mb nc]     Single-slice, unshifted 'ACS' k-space data for slice GRAPPA calibration.
+%   ysms    [nx etl nc]        SMS EPI data (one RF shot)
+%   ycal    [nx etl mb nc]     Single-slice, unshifted 'ACS' k-space data for slice GRAPPA calibration.
 %                             Non-zero values define the calibration region.
 %   Z       [mb]              SMS slice indices in full image volume
 %   nz      [1]               Number of slices in full image volume
-%   smask   [nx ny mb]        Sampled (3D) k-space locations along echo train,
+%   smask   [nx etl mb]        Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
 %   K       [2]               Kernel size (e.g., [5 5] or [7 7])
 %
@@ -18,10 +18,11 @@ function [Irss, w] = recon(ysms, ycal, Z, nz, smask, K, w)
 %                                 If not provided, calculate and return to caller.
 %
 % Outputs:
-%   Irss    [nx ny mb]        Root-sum-of-squares coil-combined reconstructed image
+%   y                         [nx  etl mb nc] reconstructed k-space
 %   w                         slice GRAPPA weights
+%   Irss    [nx etl mb]       Root-sum-of-squares coil-combined reconstructed image
 
-[nx ny mb nc] = size(ycal);
+[nx etl mb nc] = size(ycal);
 
 % phase-correct sms data for slice groups not centered at iso-center
 ysms = hmriutils.epi.slg.smsphasecorrect(ysms, Z(1), nz, smask);
@@ -60,7 +61,7 @@ fprintf('Recon time: %.2fs\n', toc);
 y = hmriutils.epi.slg.shiftslices(y, -ph);
 
 % Return root-sum-of-squares coil-combined image
-Irss = zeros(nx, ny, mb);
+Irss = zeros(nx, etl, mb);
 for z = 1:mb
     [~, Irss(:,:,z)] = toppe.utils.ift3(squeeze(y(:,:,z,:)), 'type', '2d');
 end
