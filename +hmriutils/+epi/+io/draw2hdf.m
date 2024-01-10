@@ -1,52 +1,47 @@
-function draw2hdf(draw, etl, np, ofn)
+function draw2hdf(D, etl, np, ofn)
 %
-% Write SMS-EPI fMRI raw data matrix to .h5 file.
+% Write SMS-EPI fMRI raw data matrix to .h5 file,
+% after reshaping by (temporal) frame.
 %
 % Inputs
-%   draw    [nfid nc N]     Raw data matrix
+%   D      [nfid nc N]      SMS/3D EPI raw data matrix (any type), for N sequential RF shots/FIDs.
+%                           nfid = number of data points per shot/FID.
+%                           nc = number of receive coils
+%                           Number of temporal frames is N/(etl*np).
 %   etl                     echo train length
 %   np                      number of partition/excitations (groups of SMS slices) per frame
 %   ofn                     .h5 output file name
+% 
+% Output
+%   ofn   .h5 file containing the data matrix, reshaped to size [nfid etl np nc nframes]
 %
-% Example loading GE P-file: 
-%   >> draw = toppe.utils.loadpfile('P12345.7', [], [], [], 'acqOrder', true, 'returnAsDouble', false);
-%   >> hmriutils.epi.io.draw2hdf(draw, 72, 10, 'mydata.h5');
+% Example: Load a GE P-file, write data to .h5 file, and read a frame from it: 
+%   >> D = toppe.utils.loadpfile('P12345.7', [], [], [], 'acqOrder', true, 'returnAsDouble', false);
+%   >> hmriutils.epi.io.draw2hdf(D, 72, 10, 'mydata.h5');
+%   >> d = hmriutils.epi.io.readframe('mydata.h5', 47);   % size(d) = [nfid etl np nc]
 
-[nfid, nc, N] = size(draw);
+[nfid, nc, N] = size(D);
 
 nfr = N/etl/np;    % number of temporal frames
 
-assert(~mod(nfr,1), 'size(draw,3) must be multiple of etl*np');
+assert(~mod(nfr,1), 'size(D,3) must be multiple of etl*np');
 
-% delete .h5 file if already existing
-if isfile(ofn)
-    delete(ofn)
-end
-
-% sort data into frames
+% sort data by frames
 fprintf('Sorting data into %d frames...', nfr);
-D = single(zeros(nfid, etl, np, nc, nfr));   % full data matrix
-for ifr = 1:nfr
-    % d = data for one temporal frame
-    iStart = (ifr-1)*np*etl + 1;
-    iStop = iStart + np*etl-1;
-    d = draw(:, :, iStart:iStop);   % [nFID nc np*etl]
-    [nfid nc N] = size(d);
-    d = reshape(d, nfid, nc, etl, np);
-    d = permute(d, [1 3 4 2]);   % [nfid etl np nc]. Data
-    D(:,:,:,:,ifr) = d;
-end
+D = reshape(D, nfid, nc, etl, np, nfr);
+D = permute(D, [1 3 4 2 5]);
+fprintf(' done\n');
 
-% write to .h5 file
+% Write to .h5 file. Delete if it already exists.
 if isfile(ofn)
     delete(ofn)
 end
-fprintf('\nWriting .h5 file...');
-h5create(ofn, '/kdata/real', [nfid etl np nc nfr])
-h5create(ofn, '/kdata/imag', [nfid etl np nc nfr])
+fprintf('Writing .h5 file...');
+h5create(ofn, '/kdata/real', [nfid etl np nc nfr], 'Datatype', class(D));
+h5create(ofn, '/kdata/imag', [nfid etl np nc nfr], 'Datatype', class(D));
 h5write(ofn, '/kdata/real', real(D));
 h5write(ofn, '/kdata/imag', imag(D));
-fprintf('done\n');
+fprintf(' done\n');
 
 return
 
