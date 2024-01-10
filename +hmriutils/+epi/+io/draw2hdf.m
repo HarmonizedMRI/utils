@@ -3,7 +3,7 @@ function draw2hdf(draw, etl, np, ofn)
 % Write SMS-EPI fMRI raw data matrix to .h5 file.
 %
 % Inputs
-%   draw    [nfid nc N]     Raw data matrix (single)
+%   draw    [nfid nc N]     Raw data matrix
 %   etl                     echo train length
 %   np                      number of partition/excitations (groups of SMS slices) per frame
 %   ofn                     .h5 output file name
