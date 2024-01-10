@@ -20,6 +20,11 @@ function draw2hdf(D, etl, np, ofn)
 %   >> hmriutils.epi.io.draw2hdf(D, 72, 10, 'mydata.h5');
 %   >> d = hmriutils.epi.io.readframe('mydata.h5', 47);   % size(d) = [nfid etl np nc]
 
+% Exit if file already exists
+if isfile(ofn)
+    error('File already exists');
+end
+
 [nfid, nc, N] = size(D);
 
 nfr = N/etl/np;    % number of temporal frames
@@ -32,10 +37,7 @@ D = reshape(D, nfid, nc, etl, np, nfr);
 D = permute(D, [1 3 4 2 5]);
 fprintf(' done\n');
 
-% Write to .h5 file. Delete if it already exists.
-if isfile(ofn)
-    delete(ofn)
-end
+% Write to .h5 file
 fprintf('Writing .h5 file...');
 h5create(ofn, '/kdata/real', [nfid etl np nc nfr], 'Datatype', class(D));
 h5create(ofn, '/kdata/imag', [nfid etl np nc nfr], 'Datatype', class(D));
