@@ -22,7 +22,8 @@ function draw2hdf(D, etl, np, ofn)
 
 % Exit if file already exists
 if isfile(ofn)
-    error('File already exists');
+    fprintf('File already exists -- exiting\n');
+    return
 end
 
 [nfid, nc, N] = size(D);
