@@ -21,7 +21,7 @@ function [ysms, ph] = simulatesmsepishot(d_ex, nz, Z, smask)
 d_ex = permute(d_ex, [1 2 4 3]);
 
 deltak = 1/nz;    % in units of 1/pixel (ok since voxel size divides out in phase modulation step)
-iz_iso = nz/2+1;  % center of slice group 
+iz_iso = nz/2+1;  % center of image volume
 
 % loop over kz encoding levels within slice group
 d_ex_blipped = zeros(size(d_ex));
