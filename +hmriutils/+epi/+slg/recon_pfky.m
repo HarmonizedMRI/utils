@@ -9,7 +9,7 @@ function [Irss yout] = recon_pfky(y, ny, method)
 %  method      string             'zerofill' (default) or... (TODO)
 %
 % Outputs
-%  Irss        [nx ny nz nc]      root-sum-of-squares coil-combined image
+%  Irss        [nx ny nz]         root-sum-of-squares coil-combined image
 %  yout        [nx ny nz nc]      k-space
 
 if nargin < 3
