@@ -1,5 +1,5 @@
 function [w, pinvA] = cal(ycal, z, c, K, varargin)
-% Return slice GRAPPA weights for one coil and one target slice
+% Return slice GRAPPA weights for one target coil and one target slice
 %
 % Inputs:
 %   ycal     [nx ny mb nc]     individually-acquired slice data; 
