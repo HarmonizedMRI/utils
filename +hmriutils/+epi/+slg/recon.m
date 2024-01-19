@@ -1,5 +1,5 @@
-function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, w)
-% function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, [w])
+function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, varargin)
+% function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, varargin)
 %
 % Reconstruct SMS data with split slice GRAPPA
 %
@@ -12,6 +12,7 @@ function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, w)
 %   smask   [nx etl mb]       Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
 %   K       [2]               Kernel size (e.g., [5 5] or [7 7])
+%   lam     [1]               Tikhonov regularization constant for calculating w
 %
 % Optional input:
 %   w       {mb nc} cell array    w{z,c} = slice GRAPPA weights for slice z, coil c.
@@ -21,6 +22,9 @@ function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, w)
 %   y                         [nx etl mb nc] reconstructed k-space
 %   w                         slice GRAPPA weights
 %   Irss    [nx etl mb]       Root-sum-of-squares coil-combined reconstructed image
+
+arg.lam = 0;
+arg.w = [];
 
 [nx etl mb nc] = size(ycal);
 
@@ -32,9 +36,10 @@ ph = hmriutils.epi.slg.getsmsphasemodulation(nz, Z, smask);
 ycal = hmriutils.epi.slg.shiftslices(ycal, ph);
 
 % calculate slice GRAPPA weights (if not provided by caller)
-if ~exist('w', 'var')
+%if ~exist('w', 'var')
+if isempty(arg.w)
     tic
-    [~, pinvA] = hmriutils.epi.slg.cal(ycal, 1, 1, K, 'lam', 1.^2);  % get pinv(A)
+    [~, pinvA] = hmriutils.epi.slg.cal(ycal, 1, 1, K, 'lam', arg.lam);  % get pinv(A)
     for z = 1:mb
         fprintf('.');
         for c = 1:nc
