@@ -56,7 +56,11 @@ h5write(ofn, '/maxFramesPerFile', arg.maxFramesPerFile);
 h5create(ofn, '/nFiles', [1], 'Datatype', class(nFiles));
 h5write(ofn, '/nFiles', nFiles);
 
-nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
+if nFiles == 1
+    nFramesLastFile = nfr;
+else
+    nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
+end
 h5create(ofn, '/nFramesLastFile', [1], 'Datatype', class(nFramesLastFile));
 h5write(ofn, '/nFramesLastFile', nFramesLastFile);
 

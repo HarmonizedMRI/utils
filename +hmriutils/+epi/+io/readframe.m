@@ -20,7 +20,7 @@ d = zeros(dataSize(1:end-1));  % size of one temporal frame
 % get name of file containing requested frame
 fnStem = hmriutils.epi.io.getfilenamestem(fn);
 iFile = ceil(frame/maxFramesPerFile); 
-ifn = [fnStem '_' num2str(iFile) '.h5']
+ifn = [fnStem '_' num2str(iFile) '.h5'];
 
 % read one frame
 ifr = frame - (iFile-1)*maxFramesPerFile;
