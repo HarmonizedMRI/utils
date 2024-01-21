@@ -24,6 +24,7 @@ ifn = [fnStem '_' num2str(iFile) '.h5'];
 
 % read one frame
 ifr = frame - (iFile-1)*maxFramesPerFile;
+fprintf('Reading frame %d from %s\n', ifr, ifn); 
 dr = h5read(ifn, '/kdata/real', [1 1 1 1 ifr], [dataSize(1:4) 1]);
 di = h5read(ifn, '/kdata/imag', [1 1 1 1 ifr], [dataSize(1:4) 1]);
 d = double(dr) + 1i*double(di);
