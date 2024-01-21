@@ -25,6 +25,7 @@ function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, varargin)
 
 arg.lam = 0;
 arg.w = [];
+arg = toppe.utils.vararg_pair(arg, varargin);
 
 [nx etl mb nc] = size(ycal);
 
@@ -47,6 +48,8 @@ if isempty(arg.w)
         end
     end
     fprintf('\nCalibration time: %.2fs\n', toc);
+else
+    w = arg.w;
 end
 
 % reconstruct
