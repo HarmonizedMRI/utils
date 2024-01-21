@@ -1,4 +1,4 @@
-function draw2hdf(D, etl, np, ofn)
+function draw2hdf(D, etl, np, ofn, varargin)
 %
 % Write SMS-EPI fMRI raw data matrix to .h5 file,
 % after reshaping by (temporal) frame.
@@ -11,6 +11,10 @@ function draw2hdf(D, etl, np, ofn)
 %   etl                     echo train length
 %   np                      number of partition/excitations (groups of SMS slices) per frame
 %   ofn                     .h5 output file name
+%
+% Input options (keyboard arguments)
+%   maxFramesPerFile        Split data set into multiple .h5 files. 
+%                           This seems to be needed for large D, perhaps due to a bug in h5write()
 % 
 % Output
 %   ofn   .h5 file containing the data matrix, reshaped to size [nfid etl np nc nframes]
@@ -20,17 +24,25 @@ function draw2hdf(D, etl, np, ofn)
 %   >> hmriutils.epi.io.draw2hdf(D, 72, 10, 'mydata.h5');
 %   >> d = hmriutils.epi.io.readframe('mydata.h5', 47);   % size(d) = [nfid etl np nc]
 
-% Exit if file already exists
-if isfile(ofn)
-    fprintf('File already exists -- exiting\n');
-    return
+[nfid, nc, N] = size(D);
+nfr = N/etl/np;    % number of temporal frames
+assert(~mod(nfr,1), 'size(D,3) must be multiple of etl*np');
+
+arg.maxFramesPerFile = nfr;
+arg = toppe.utils.vararg_pair(arg, varargin);
+
+% determine if '.h5' needs to be added to ofn
+if strcmp(ofn(end-2:end), '.h5')
+    fnStem = ofn(1:end-3);
+else
+    fnStem = ofn;
 end
 
-[nfid, nc, N] = size(D);
-
-nfr = N/etl/np;    % number of temporal frames
-
-assert(~mod(nfr,1), 'size(D,3) must be multiple of etl*np');
+% Exit if file already exists
+%if isfile(ofn) ~ isfile
+%    fprintf('File already exists -- exiting\n');
+%    return
+%end
 
 % sort data by frames
 fprintf('Sorting data into %d frames...', nfr);
@@ -38,13 +50,28 @@ D = reshape(D, nfid, nc, etl, np, nfr);
 D = permute(D, [1 3 4 2 5]);
 fprintf(' done\n');
 
-% Write to .h5 file
-fprintf('Writing .h5 file...');
-h5create(ofn, '/kdata/real', [nfid etl np nc nfr], 'Datatype', class(D));
-h5create(ofn, '/kdata/imag', [nfid etl np nc nfr], 'Datatype', class(D));
-h5write(ofn, '/kdata/real', real(D));
-h5write(ofn, '/kdata/imag', imag(D));
-fprintf(' done\n');
+% Write to .h5 file(s)
+nFiles = ceil(nfr/arg.maxFramesPerFile);
+for ii = 1:nFiles
+    ofn = [fnStem '_' num2str(ii) '.h5'];
+    FR = (ii-1)*arg.maxFramesPerFile+1 : ii*arg.maxFramesPerFile;
+    if ii == nFiles
+        nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
+        FR = FR(1:nFramesLastFile);
+    end
+    fprintf('Writing %s...', ofn);
+    h5create(ofn, '/maxFramesPerFile', [1], 'Datatype', class(arg.maxFramesPerFile));
+    h5write(ofn, '/maxFramesPerFile', arg.maxFramesPerFile);
+
+    h5create(ofn, '/nTotalFrames', [1], 'Datatype', class(nfr));
+    h5write(ofn, '/nTotalFrames', nfr);
+
+    h5create(ofn, '/kdata/real', [nfid etl np nc length(FR)], 'Datatype', class(D));
+    h5create(ofn, '/kdata/imag', [nfid etl np nc length(FR)], 'Datatype', class(D));
+    h5write(ofn, '/kdata/real', real(D(:,:,:,:,FR)));
+    h5write(ofn, '/kdata/imag', imag(D(:,:,:,:,FR)));
+    fprintf(' done\n');
+end
 
 return
 
