@@ -3,6 +3,16 @@ function draw2hdf(D, etl, np, ofn, varargin)
 % Write SMS-EPI fMRI raw data matrix to .h5 file,
 % after reshaping by (temporal) frame.
 %
+% Since it seems that this function can fail for large data sizes,
+% seemingly due to a bug in h5write() (?), 
+% the data is split into one or more separate files ending in '_<n>.h5'
+% where n = 1, 2, ...
+% In addition, this function writes a file 'ofn' containing meta
+% information needed by readframe().
+%
+% Default is to write all data to one file.
+% The keyword argument 'maxFramesPerFile' controls the size of each '_<n>.h5' file
+%
 % Inputs
 %   D      [nfid nc N]      SMS/3D EPI raw data matrix (any type), for N sequential RF shots/FIDs.
 %                           nfid = number of data points per shot/FID.
@@ -13,15 +23,11 @@ function draw2hdf(D, etl, np, ofn, varargin)
 %   ofn                     .h5 output file name
 %
 % Input options (keyboard arguments)
-%   maxFramesPerFile        Split data set into multiple .h5 files. 
-%                           This seems to be needed for large D, perhaps due to a bug in h5write()
+%   maxFramesPerFile        Write at most this number of frames to each .h5 file
 % 
-% Output
-%   ofn   .h5 file containing the data matrix, reshaped to size [nfid etl np nc nframes]
-%
 % Example: Load a GE P-file, write data to .h5 file, and read a frame from it: 
 %   >> D = toppe.utils.loadpfile('P12345.7', [], [], [], 'acqOrder', true, 'returnAsDouble', false);
-%   >> hmriutils.epi.io.draw2hdf(D, 72, 10, 'mydata.h5');
+%   >> hmriutils.epi.io.draw2hdf(D, 72, 10, 'mydata.h5', maxFramesPerFile, 100);
 %   >> d = hmriutils.epi.io.readframe('mydata.h5', 47);   % size(d) = [nfid etl np nc]
 
 [nfid, nc, N] = size(D);
