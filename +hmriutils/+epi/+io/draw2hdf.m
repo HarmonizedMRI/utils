@@ -31,18 +31,13 @@ assert(~mod(nfr,1), 'size(D,3) must be multiple of etl*np');
 arg.maxFramesPerFile = nfr;
 arg = toppe.utils.vararg_pair(arg, varargin);
 
-% determine if '.h5' needs to be added to ofn
-if strcmp(ofn(end-2:end), '.h5')
-    fnStem = ofn(1:end-3);
-else
-    fnStem = ofn;
-end
+fnStem = hmriutils.epi.io.getfilenamestem(ofn);
 
 % Exit if file already exists
-%if isfile(ofn) ~ isfile
-%    fprintf('File already exists -- exiting\n');
-%    return
-%end
+if isfile([fnStem '.h5'])
+    fprintf('File already exists -- exiting\n');
+    return
+end
 
 % sort data by frames
 fprintf('Sorting data into %d frames...', nfr);
@@ -50,22 +45,37 @@ D = reshape(D, nfid, nc, etl, np, nfr);
 D = permute(D, [1 3 4 2 5]);
 fprintf(' done\n');
 
-% Write to .h5 file(s)
+% Write header/entry .h5 file
 nFiles = ceil(nfr/arg.maxFramesPerFile);
+ofn = [fnStem '.h5'];
+
+fprintf('Writing %s...', ofn);
+h5create(ofn, '/maxFramesPerFile', [1], 'Datatype', class(arg.maxFramesPerFile));
+h5write(ofn, '/maxFramesPerFile', arg.maxFramesPerFile);
+
+h5create(ofn, '/nFiles', [1], 'Datatype', class(nFiles));
+h5write(ofn, '/nFiles', nFiles);
+
+nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
+h5create(ofn, '/nFramesLastFile', [1], 'Datatype', class(nFramesLastFile));
+h5write(ofn, '/nFramesLastFile', nFramesLastFile);
+
+h5create(ofn, '/dataSize', [ndims(D)], 'Datatype', class(size(D)));
+h5write(ofn, '/dataSize', size(D));
+fprintf(' done\n');
+
+% write data file(s)
 for ii = 1:nFiles
     ofn = [fnStem '_' num2str(ii) '.h5'];
+
+    % frames to write to file
     FR = (ii-1)*arg.maxFramesPerFile+1 : ii*arg.maxFramesPerFile;
     if ii == nFiles
-        nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
         FR = FR(1:nFramesLastFile);
     end
+
+    % write to file
     fprintf('Writing %s...', ofn);
-    h5create(ofn, '/maxFramesPerFile', [1], 'Datatype', class(arg.maxFramesPerFile));
-    h5write(ofn, '/maxFramesPerFile', arg.maxFramesPerFile);
-
-    h5create(ofn, '/nTotalFrames', [1], 'Datatype', class(nfr));
-    h5write(ofn, '/nTotalFrames', nfr);
-
     h5create(ofn, '/kdata/real', [nfid etl np nc length(FR)], 'Datatype', class(D));
     h5create(ofn, '/kdata/imag', [nfid etl np nc length(FR)], 'Datatype', class(D));
     h5write(ofn, '/kdata/real', real(D(:,:,:,:,FR)));
