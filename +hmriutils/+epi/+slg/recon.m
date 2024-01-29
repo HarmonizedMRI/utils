@@ -12,9 +12,9 @@ function [y, w, Irss] = recon(ysms, ycal, Z, nz, smask, K, varargin)
 %   smask   [nx etl mb]       Sampled (3D) k-space locations along echo train,
 %                             which defines the z blips. See getsamplingmask.m
 %   K       [2]               Kernel size (e.g., [5 5] or [7 7])
-%   lam     [1]               Tikhonov regularization constant for calculating w
 %
 % Optional input:
+%   lam     [1]                   Tikhonov regularization constant for calculating w. Default: 0
 %   w       {mb nc} cell array    w{z,c} = slice GRAPPA weights for slice z, coil c.
 %                                 If not provided, calculate and return to caller.
 %
