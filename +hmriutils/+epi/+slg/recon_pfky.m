@@ -29,7 +29,10 @@ end
 if strcmp(method, 'homodyne')
     for z = 1:nz
         for c = 1:nc
-            yout(:,:,z,c) = hmriutils.epi.homodyne(y(:,:,z,c), ny);          
+            yout(:,:,z,c) = hmriutils.epi.homodyne(y(:,:,z,c), ny, ...
+                'trw_lp', 10, ...
+                'trw_hp_lo', 6, ...
+                'trw_hp_hi', 6);
         end
     end
 
