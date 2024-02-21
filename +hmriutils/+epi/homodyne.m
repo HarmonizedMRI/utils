@@ -125,7 +125,10 @@ function sub_test
     %im(abs(y).^0.3);
 
     % homodyne recon
-    yhat = hmriutils.epi.homodyne(y, n, 'mask', mask, 'plot', true);
+    yhat = hmriutils.epi.homodyne(y, n, 'mask', mask, 'plot', true, ...
+        'trw_lp', 10, ...
+        'trw_hp_lo', 6, ...
+        'trw_hp_hi', 6);
     xhat = fftshift(ifftn(fftshift(yhat)));
 
     % compare with true and zero-padded
