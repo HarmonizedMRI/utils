@@ -1,5 +1,5 @@
-function [rf, gz, freq] = getsmspulse(alpha, slThick, tbw, dur, nSlices, sliceSep, sysGE, sys, varargin)
-% function [rf, gz, freq] = getsmspulse(alpha, slThick, tbw, dur, nSlices, sliceSep, sysGE, sys, varargin)
+function [rf, gz, freq, t_rfCenter] = getsmspulse(alpha, slThick, tbw, dur, nSlices, sliceSep, sysGE, sys, varargin)
+% function [rf, gz, freq, t_rfCenter] = getsmspulse(alpha, slThick, tbw, dur, nSlices, sliceSep, sysGE, sys, varargin)
 %
 % Create SMS rf and gradient waveforms 
 %
@@ -20,6 +20,7 @@ function [rf, gz, freq] = getsmspulse(alpha, slThick, tbw, dur, nSlices, sliceSe
 %   rf          struct   Pulseq rf event
 %   g           struct   Pulseq gradient event
 %   freq        [1]      Frequency offset (Hz) corresponding to slThick
+%   iRfCenter   [1]      sample 
 
 if strcmp(alpha, 'test')
 	[rf, gz] = sub_test();
@@ -58,6 +59,7 @@ gPlateau = max(gz);           % gradient amplitude during RF excitation (Gauss/c
 rf = 0*rf1;
 dt = sysGE.raster*1e-6;      % sample (dwell) time (sec) 
 t = [dt:dt:(dt*length(rf1))]' - (dt*iRfCenter);   % time reference is center of rf pulse
+t_rfCenter = iRfCenter*dt;
 for sl = 1:nSlices
 	sliceOffset = (-nSlices/2 + sl - 1) * sliceSep;   % cm. Note offset for mb=1
 	f = sysGE.gamma*gPlateau*1e-4*sliceOffset;   % Hz
@@ -137,6 +139,7 @@ end
 % signal = signal./abs(sum(signal.*opt.dwell))*flip/(2*pi);
 flip = alpha/180*pi;
 flipAssumed = abs(sum(rfp));
+
 rf = mr.makeArbitraryRf(rfp, ...
     flip*abs(sum(rfp*sys.rfRasterTime))*(2*pi), ...
     'delay', delay, ...
@@ -146,6 +149,7 @@ gz = mr.makeArbitraryGrad('z', gzp, sys, ...
     'delay', gdelay);
 gz.first = 0;
 gz.last = 0;
+
 return
 
 
