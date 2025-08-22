@@ -46,7 +46,7 @@ else
     maSpan = 5;   % moving-average span for smoothing
 end
 
-th = smooth(unwrap(angle(th)), maSpan);
+th = hmriutils.epi.smooth_custom(unwrap(angle(th)), maSpan);
 
 % Subtract off-resonance phase from all echoes
 if true
