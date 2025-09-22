@@ -1,4 +1,4 @@
-function draw2hdf(D, etl, np, ofn, varargin)
+function nFramesTotal=draw2hdf(D, etl, np, ofn, varargin)
 %
 % Write SMS-EPI fMRI raw data matrix to .h5 file,
 % after reshaping by (temporal) frame.
@@ -33,6 +33,8 @@ function draw2hdf(D, etl, np, ofn, varargin)
 [nfid, nc, N] = size(D);
 nfr = N/etl/np;    % number of temporal frames
 assert(~mod(nfr,1), 'size(D,3) must be multiple of etl*np');
+% MZ: return the total number of frames
+nFramesTotal=nfr; 
 
 arg.maxFramesPerFile = nfr;
 arg = toppe.utils.vararg_pair(arg, varargin);
