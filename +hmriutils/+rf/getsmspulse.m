@@ -54,7 +54,7 @@ I = find(abs(rf1) > max(abs(rf1(:)))-eps);
 iRfCenter = mean(I);
 
 % Create SMS pulse
-PHS = getsmsphase(nSlices);  % Phase of the various subpulses (rad). From Wong et al, ISMRM 2012 p2209.
+PHS = hmriutils.rf.getsmsphase(nSlices);  % Phase of the various subpulses (rad). From Wong et al, ISMRM 2012 p2209.
 bw = tbw/dur*1e3;            % pulse bandwidth (Hz)
 gPlateau = max(gz);           % gradient amplitude during RF excitation (Gauss/cm)
 rf = 0*rf1;
