@@ -37,6 +37,7 @@ arg.writeModFile = false;
 arg.ofname       = 'tipdown.mod';
 arg.type         = 'st';               % 'ex': 90 excitation; 'st' = small-tip
 arg.ftype        = 'ls';
+arg.noRfOffset   = false;
 arg = toppe.utils.vararg_pair(arg, varargin);
 
 %% Design rf and gradient (on 4us raster)
@@ -53,7 +54,7 @@ I = find(abs(rf1) > max(abs(rf1(:)))-eps);
 iRfCenter = mean(I);
 
 % Create SMS pulse
-PHS = getsmsphase(nSlices);  % Phase of the various subpulses (rad). From Wong et al, ISMRM 2012 p2209.
+PHS = hmriutils.rf.getsmsphase(nSlices);  % Phase of the various subpulses (rad). From Wong et al, ISMRM 2012 p2209.
 bw = tbw/dur*1e3;            % pulse bandwidth (Hz)
 gPlateau = max(gz);           % gradient amplitude during RF excitation (Gauss/cm)
 rf = 0*rf1;
@@ -61,7 +62,7 @@ dt = sysGE.raster*1e-6;      % sample (dwell) time (sec)
 t = [dt:dt:(dt*length(rf1))]' - (dt*iRfCenter);   % time reference is center of rf pulse
 t_rfCenter = iRfCenter*dt;
 for sl = 1:nSlices
-	sliceOffset = (-nSlices/2 + sl - 1) * sliceSep;   % cm. Note offset for mb=1
+	sliceOffset = (1-arg.noRfOffset)*(-nSlices/2 + sl - 1) * sliceSep;   % cm. Note offset for mb=1
 	f = sysGE.gamma*gPlateau*1e-4*sliceOffset;   % Hz
 	rf = rf + rf1.*exp(1i*2*pi*f*t)*exp(1i*PHS(sl));
 end
@@ -102,7 +103,7 @@ if arg.doSim
 end
 
 
-%% Create Pulseq objects
+%% Create Pulseq events (rf and gz)
 
 rasterIn = sysGE.raster*1e-6;    % s
 
@@ -133,7 +134,7 @@ if delay < sys.rfDeadTime
 else
     gdelay = 0;
 end
-    
+
 % create pulseq objects
 % Account for the fact that makeArbitraryRf scales the pulse as follows:
 % signal = signal./abs(sum(signal.*opt.dwell))*flip/(2*pi);
