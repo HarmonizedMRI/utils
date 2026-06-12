@@ -66,6 +66,8 @@ h5write(ofn, '/nFiles', nFiles);
 
 if nFiles == 1
     nFramesLastFile = nfr;
+elseif mod(nfr,arg.maxFramesPerFile)==0
+    nFramesLastFile = arg.maxFramesPerFile;
 else
     nFramesLastFile = nfr - floor(nfr/arg.maxFramesPerFile)*arg.maxFramesPerFile;
 end
