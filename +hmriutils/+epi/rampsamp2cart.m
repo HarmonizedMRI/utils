@@ -46,8 +46,8 @@ end
 if strcmp(method, 'spline')
     % Interpolate to Cartesian grid
     osf = 2;   % oversampling factor
-    kxc = [ (-nx/2+1/(2*osf)):(1/osf):(nx/2-1/(2*osf)) ] * 1/fov;  % cycles/cm
-    d1 = interp1(kx, dr, kxc, 'spline', 'extrap');
+    kxc = [ (-nx/2):(1/osf):(nx/2-1/(osf)) ] * 1/fov;  % cycles/cm
+    d1 = interp1(kx, dr, kxc, 'spline', 0);
 
     % crop fov
     x1 = fftshift(ifft(fftshift(d1,1), [], 1),1);
@@ -56,7 +56,7 @@ if strcmp(method, 'spline')
     % Deapodize
     dr2 = 0*dr(:,1,1);
     dr2(round(end/2)+1) = 1;  % impulse
-    d2 = interp1(kx, dr2, kxc, 'spline', 'extrap');
+    d2 = interp1(kx, dr2, kxc, 'spline', 0);
     ap = abs(fftshift(ifft(fftshift(d2))))'; % image-space apodization
     ap = ap((nx-nx/2+1):(nx+nx/2));
     ap = ap/max(ap);
